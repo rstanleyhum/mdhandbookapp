@@ -1,0 +1,7 @@
+{
+    "name" : "MD Handbook App",
+    "description": "An educational app for the pediatric residents at CHONY.",
+    "slug" : "expo.o/@rstanleyhum/mdhandbookapp",
+    "privacy" : "unlisted",
+    "sdkVersion" : "41.3.0"
+}
