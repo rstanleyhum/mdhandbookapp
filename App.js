@@ -7,8 +7,8 @@ import Expo, { AppLoading } from 'expo';
 import store from './app/store';
 import MainApp from './app/mainapp';
 
-import { SetupAllPageResources } from './app/actions/global';
-
+import { setupAllPageResources, saveAllPageResources, loadAllPageResources } from './app/actions/global';
+import { SetupLocalDB } from './app/services/localdb';
 
 
 export default class App extends React.Component {
@@ -21,9 +21,25 @@ export default class App extends React.Component {
   }
 
   setup() {
-    Promise.all([store.dispatch(SetupAllPageResources())])
+    SetupLocalDB()
+    .then( result => {
+      return store.dispatch(loadAllPageResources())
+    })
+    .then(success => {
+      if (success) {
+        this.setState({isReady: true});
+        return Promise.resolve(true);
+      } else {
+        return Promise.all([store.dispatch(setupAllPageResources())]);
+      }
+    })
     .then(results => {
+      
       this.setState({isReady: true});
+      
+      if (typeof results != "boolean") {
+        store.dispatch(saveAllPageResources());
+      }
     })
     .catch(err => {
       console.log("Error on startup: " + err);

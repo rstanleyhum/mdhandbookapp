@@ -3,9 +3,10 @@
 import { setLoading, setLoaded, updatePage, updateCss } from '../pagesapp/actions/pagestore';
 
 import { LoadAllPages, LoadAllCss } from '../pagesapp/services/pageloader';
+import { SaveAll, GetAllPages, GetAllCss } from '../services/localdb';
 
 
-export function SetupAllPageResources() {
+export function setupAllPageResources() {
     return (dispatch, getState) => {
         if (getState().pagestore.loaded || getState().pagestore.loading) {
             return
@@ -27,6 +28,49 @@ export function SetupAllPageResources() {
                     dispatch(setLoading(false));
                 })
                 .catch( (err) => {
+                    console.log(err);
+                });
+    };
+};
+
+
+export function saveAllPageResources() {
+    return (dispatch, getState) => {
+        return SaveAll(getState().pagestore.sourcePages, getState().pagestore.sourceCss)
+                .then( result => {
+                    return result;
+                })
+                .catch( error => {
+                    console.log("Saving: error: " + error);
+                });
+    };
+};
+
+
+export function loadAllPageResources() {
+    return (dispatch, getState) => {
+        return GetAllPages()
+                .then(json_str => {
+                    if (json_str == null) {
+                        return Promise.reject(false);
+                    }
+                    var pages = JSON.parse(json_str);
+                    for (var k in pages) {
+                        dispatch(updatePage(k, pages[k]));
+                    }
+                    return GetAllCss();
+                })
+                .then(json_str => {
+                    if (json_str == null) {
+                        return false;
+                    }
+
+                    var csstext = JSON.parse(json_str);
+                    dispatch(updateCss(csstext));
+                    return true;
+                })
+                .catch( (err) => {
+                    return false;
                     console.log(err);
                 });
     };
