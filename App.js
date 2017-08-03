@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+import { AppState } from 'react-native';
 import { Provider } from 'react-redux';
 import Expo, { AppLoading } from 'expo';
 
@@ -14,7 +15,22 @@ import { SetupLocalDB } from './app/services/localdb';
 export default class App extends React.Component {
   state = {
     isReady: false,
+    appState: AppState.currentState
   };
+
+  componentDidMount() {
+    AppState.addEventListener('change', this._handleAppStateChange);
+    console.log("LOG: App DidMount");
+  }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+
+  _handleAppStateChange = (nextAppState) => {
+    console.log("LOG: " + nextAppState);
+    this.setState({appState: nextAppState});
+  }
 
   componentWillMount() {
     this.setup();

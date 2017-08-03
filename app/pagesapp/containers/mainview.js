@@ -37,6 +37,8 @@ function mapStateToProps(state) {
         source = { html: finalHtml }
     }
     
+    console.log("LOG: " + state.pagesapp.sourceUrl);
+    
     return {
         source: source
     }
