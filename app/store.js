@@ -4,8 +4,8 @@ import { applyMiddleware, combineReducers, createStore } from 'redux';
 import thunk from 'redux-thunk';
 
 import { navReducer } from './appnav';
-import PageReducer from './pagesapp/reducers/pagereducer';
-import PageStoreReducer from './pagesapp/reducers/pagestorereducer';
+import PageReducer from './reducers/pagereducer';
+import PageStoreReducer from './reducers/pagestorereducer';
 
 
 const middleware = () => {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { loadURL } from '../../services/firebase'
+import { loadURL } from './firebase'
 
 import PagesFilenames, { UrlBase, CssFilenames } from '../config/firebaseassets';
 

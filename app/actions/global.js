@@ -1,8 +1,8 @@
 'use strict';
 
-import { setLoading, setLoaded, updatePage, updateCss } from '../pagesapp/actions/pagestore';
+import { setLoading, setLoaded, updatePage, updateCss } from '../actions/pagestore';
 
-import { LoadAllPages, LoadAllCss } from '../pagesapp/services/pageloader';
+import { LoadAllPages, LoadAllCss } from '../services/pageloader';
 import { SaveAll, GetAllPages, GetAllCss } from '../services/localdb';
 
 
