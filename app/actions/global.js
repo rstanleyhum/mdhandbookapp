@@ -2,7 +2,7 @@
 
 import { setLoading, setLoaded, updatePage, updateCss } from '../actions/pagestore';
 
-import { LoadAllPages, LoadAllCss } from '../services/pageloader';
+import { LoadAllPages, LoadAllCss } from '../services/firebase';
 import { SaveAll, GetAllPages, GetAllCss } from '../services/localdb';
 
 

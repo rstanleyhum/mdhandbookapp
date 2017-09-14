@@ -6,6 +6,8 @@ import 'firebase/database'
 import 'firebase/storage'
 
 import firebaseConfig from '../assets/firebase.secret';
+import PagesFilenames, { UrlBase, CssFilenames } from '../config/firebaseassets';
+
 
 firebase.initializeApp(firebaseConfig);
 
@@ -79,5 +81,35 @@ export const ParseFilename = (filename) => {
     var basename = basefilename.slice(0, -5);
     return basename
 }
+
+
+export const LoadAllCss = () => {
+    var cssfilenames = []
+    for (var key in CssFilenames) {
+        cssfilenames.push(key)
+    }
+
+    var loadCssFilePromisesList = cssfilenames.map( item => {
+        return loadURL(item, UrlBase + CssFilenames[item])
+    });
+
+    return Promise.all(loadCssFilePromisesList);
+}
+
+
+export const LoadAllPages = () => {
+    var filenames = []
+    for (var key in PagesFilenames) {
+        filenames.push(key)
+    }
+
+    var loadFilePromisesList = filenames.map( item => {
+        return loadURL(item, UrlBase + PagesFilenames[item])
+    });
+
+    return Promise.all(loadFilePromisesList);
+};
+
+
 
 export default firebase;
