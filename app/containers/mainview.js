@@ -25,18 +25,8 @@ class MainView extends React.Component {
 
 function mapStateToProps(state) {
     
-    var source = {}
-    if (state.pagesapp.sourceUrl.startsWith("http")) {
-        source = { uri: state.pagesapp.sourceUrl }
-    } else {
-        var html = state.pagestore.sourcePages[state.pagesapp.sourceUrl] || '<html><head></head><body>No Data</body></html>'
-        var n = html.indexOf("</head>");
-        var interimHtml = [html.slice(0, n), '<style type="text/css">', state.pagestore.sourceCss, "</style>", html.slice(n)].join('');
-        var m = interimHtml.indexOf("</body>");
-        var finalHtml = [interimHtml.slice(0,m), '<script>', PostScript, "</script>", interimHtml.slice(m)].join('');
-        source = { html: finalHtml }
-    }
-    
+    var source = _createSource(state.pagesapp.sourceUrl, state.pagestore.sourcePages, state.pagestore.sourceCss);
+
     return {
         source: source
     }
@@ -57,6 +47,21 @@ const mapDispatchToProps = (dispatch) => {
             }
         }
     }
+}
+
+const _createSource = (sourceUrl, sourcePages, sourceCss) => {
+    var source = {}
+    if (sourceUrl.startsWith("http")) {
+        source = { uri: sourceUrl }
+    } else {
+        var html = sourcePages[sourceUrl] || '<html><head></head><body>No Data</body></html>'
+        var n = html.indexOf("</head>");
+        var interimHtml = [html.slice(0, n), '<style type="text/css">', sourceCss, "</style>", html.slice(n)].join('');
+        var m = interimHtml.indexOf("</body>");
+        var finalHtml = [interimHtml.slice(0,m), '<script>', PostScript, "</script>", interimHtml.slice(m)].join('');
+        source = { html: finalHtml }
+    }
+    return source;
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(MainView)
