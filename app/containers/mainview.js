@@ -24,10 +24,8 @@ class MainView extends React.Component {
 }
 
 function mapStateToProps(state) {
-    
     var source = _createSource(state.pagesapp.sourceUrl, state.pagestore.sourcePages, state.pagestore.sourceCss);
-
-    return {
+    return { 
         source: source
     }
 }
@@ -37,31 +35,75 @@ const mapDispatchToProps = (dispatch) => {
         onMessage: (event) => {
             var url = event.nativeEvent.data + '';
 
-            if (url.startsWith("hybrid://")) {
-                var baseUrl = url.slice(9, url.length);
+            if (_isHybridLink(url)) {
+                var baseUrl = _getBaseUrlKey(url);
                 dispatch(pushPage(baseUrl));
             }
 
-            if (url.startsWith("http")) {
+            if (_isHybridLink(url)) {
                 dispatch(pushWebPage(url));
             }
         }
     }
 }
 
-const _createSource = (sourceUrl, sourcePages, sourceCss) => {
-    var source = {}
-    if (sourceUrl.startsWith("http")) {
-        source = { uri: sourceUrl }
-    } else {
-        var html = sourcePages[sourceUrl] || '<html><head></head><body>No Data</body></html>'
-        var n = html.indexOf("</head>");
-        var interimHtml = [html.slice(0, n), '<style type="text/css">', sourceCss, "</style>", html.slice(n)].join('');
-        var m = interimHtml.indexOf("</body>");
-        var finalHtml = [interimHtml.slice(0,m), '<script>', PostScript, "</script>", interimHtml.slice(m)].join('');
-        source = { html: finalHtml }
-    }
-    return source;
+
+const _getBaseUrlKey = (url) => {
+    return url.slice(9, url.length);
 }
+
+
+const _createHttpUrlSource = (sourceUrl) => {
+    return { uri: sourceUrl }
+}
+
+const _isHybridLink = (sourceUrl) => {
+    if (sourceUrl.startsWith("hybrid://")) {
+        return true;
+    }
+    return false;
+}
+
+const _isHttpLink = (sourceUrl) => {
+    if (sourceUrl.startsWith("http")) {
+        return true;
+    }
+    return false;
+}
+
+
+const _createHybridSource = (sourceUrl, pageHtml, css) => {
+    var html = _getInitialHybridHtml(pageHtml); 
+    var interimHtml = _addCssToHeadHtml(html, css);
+    var finalHtml = _addPostScriptToBodyHtml(interimHtml, PostScript);
+    return { html: finalHtml }
+}
+
+
+const _getInitialHybridHtml = (pageHtml) => {
+    return pageHtml || '<html><head></head><body>No Data</body></html>'
+}
+
+
+const _addCssToHeadHtml = (pageHtml, css) => {
+    let n = pageHtml.indexOf("</head>");
+    return [pageHtml.slice(0, n), '<style type="text/css">', css, "</style>", pageHtml.slice(n)].join('');
+}
+
+
+const _addPostScriptToBodyHtml = (pageHtml, postscript) => {
+    let m = pageHtml.indexOf("</body>");
+    return [pageHtml.slice(0,m), '<script>', PostScript, "</script>", pageHtml.slice(m)].join('');
+}
+
+
+const _createSource = (sourceUrl, sourcePages, sourceCss) => {
+    if (_isHttpLink(sourceUrl)) {
+        return _createHttpUrlSource(sourceUrl);
+    }
+    return _createHybridSource(sourceUrl, sourcePages[sourceUrl], sourceCss);
+
+}
+
 
 export default connect(mapStateToProps, mapDispatchToProps)(MainView)
