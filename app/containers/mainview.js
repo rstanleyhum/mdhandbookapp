@@ -5,7 +5,7 @@ import React, { PropTypes } from 'react';
 import { WebView } from 'react-native';
 import { pushPage, pushWebPage } from '../actions/page';
 
-import { PostScript } from '../config/firebaseassets';
+import { PostScript } from '../config/jsassets';
 
 class MainView extends React.Component {
     constructor(props) {
@@ -40,7 +40,7 @@ const mapDispatchToProps = (dispatch) => {
                 dispatch(pushPage(baseUrl));
             }
 
-            if (_isHybridLink(url)) {
+            if (_isHttpLink(url)) {
                 dispatch(pushWebPage(url));
             }
         }
@@ -72,7 +72,8 @@ const _isHttpLink = (sourceUrl) => {
 }
 
 
-const _createHybridSource = (sourceUrl, pageHtml, css) => {
+const _createHybridSource = (pageHtml, css) => {
+
     var html = _getInitialHybridHtml(pageHtml); 
     var interimHtml = _addCssToHeadHtml(html, css);
     var finalHtml = _addPostScriptToBodyHtml(interimHtml, PostScript);
@@ -101,7 +102,8 @@ const _createSource = (sourceUrl, sourcePages, sourceCss) => {
     if (_isHttpLink(sourceUrl)) {
         return _createHttpUrlSource(sourceUrl);
     }
-    return _createHybridSource(sourceUrl, sourcePages[sourceUrl], sourceCss);
+
+    return _createHybridSource(sourcePages[sourceUrl], sourceCss);
 
 }
 

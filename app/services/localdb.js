@@ -2,43 +2,92 @@
 
 import { SQLite } from 'expo';
 
+const DROP_PAGES_TABLE_SQL = `DROP TABLE IF EXISTS pagestable;`;
 
 const CREATE_PAGES_TABLE_SQL = `CREATE TABLE IF NOT EXISTS pagestable (
-    id TEXT,
-    json_str TEXT);
-`;
+    name TEXT PRIMARY KEY NOT NULL,
+    data TEXT);`;
 
-const INSERT_PAGE_SQL = `INSERT INTO pagestable (json_str) VALUES (?);`;
+const INSERT_OR_REPLACE_PAGE_SQL = `INSERT OR REPLACE INTO pagestable (name, data) VALUES (?, ?);`;
 
-const SELECT_ALL_PAGES_SQL = `SELECT * FROM pagestable;`;
+const SELECT_ALL_PAGES_SQL = `SELECT name, data FROM pagestable;`;
 
+
+const DROP_CSS_TABLE_SQL = `DROP TABLE IF EXISTS csstable`;
 
 const CREATE_CSS_TABLE_SQL = `CREATE TABLE IF NOT EXISTS csstable (
-    id TEXT,
-    json_str TEXT);
-`;
+    name TEXT PRIMARY KEY NOT NULL,
+    data TEXT);`;
 
-const SELECT_ALL_CSS_SQL = `SELECT * FROM csstable;`;
+const SELECT_ALL_CSS_SQL = `SELECT name, data FROM csstable;`;
 
-const INSERT_CSS_SQL = `INSERT INTO csstable (json_str) VALUES (?);`;
+const INSERT_OR_REPLACE_CSS_SQL = `INSERT OR REPLACE INTO csstable (name, data) VALUES (?, ?);`;
 
 
 const db = SQLite.openDatabase({name: 'pages.db3'});
 
 
+export const DropPagesTable = () => {
+    var p = new Promise( (resolve, reject) => {
+        db.transaction(
+            tx => {
+                tx.executeSql(DROP_PAGES_TABLE_SQL, [], () => {}, (tx, err) => { reject(err); } );
+            },
+            (err) => {
+                reject(err);
+            },
+            () => {
+                resolve();
+            }
+        );
+    });
+    return p;
+};
+
+
+export const DropCssTable = () => {
+    var p = new Promise( (resolve, reject) => {
+        db.transaction(
+            tx => {
+                tx.executeSql(DROP_CSS_TABLE_SQL, [], () => {}, (tx, err) => { reject(err); } );
+            },
+            (err) => {
+                reject(err);
+            },
+            () => {
+                resolve();
+            }
+        );
+    });
+    return p;
+};
+
+export const DropLocalDB = () => {
+
+    var p = new Promise( (resolve, reject) => {
+        Promise.all([DropPagesTable(), DropCssTable()])
+            .then(() => {
+                resolve();
+            })
+            .catch(err => {
+                reject(err);
+            });
+    });
+    return p;
+}
 
 export const SetupLocalDB = () => {
     var p = new Promise( (resolve, reject) => {
-            db.transaction(
+        db.transaction(
             tx => {
-                tx.executeSql(CREATE_PAGES_TABLE_SQL, [], () => {}, () => {console.log("ERROR: (SetupLocalDB - CREATE_PAGES_TABLE_SQL):")} );
-                tx.executeSql(CREATE_CSS_TABLE_SQL, [], () => {}, () => {console.log("ERROR: (SetupLocalDB - CREATE_CSS_TABLE_SQL):")} );
+                tx.executeSql(CREATE_PAGES_TABLE_SQL, [], () => {}, (tx, err) => { reject(err); } );
+                tx.executeSql(CREATE_CSS_TABLE_SQL, [], () => {}, (tx, err) => { reject(err); } );
             },
             (err) => {
-                resolve(false);
+                reject(err);
             },
             () => {
-                resolve(true);
+                resolve();
             }
         );
     });
@@ -46,78 +95,37 @@ export const SetupLocalDB = () => {
 };
 
 
-export const SaveAll = (pages, css) => {
-    var p = new Promise( (resolve, reject) => {
-        var json_str = JSON.stringify(pages);
-        InsertPage(json_str)
-        .then( success => {
-            json_str = JSON.stringify(css);
-            return InsertCss(json_str);
-        })
-        .then( success => {
-            resolve(success);
-        })
-        .catch( error => {
-            resolve(false);
-        })
-    });
-    return p;
-};
-
-
-export const InsertPage = (v) => {
+export const InsertOrReplacePage = (name, data) => {
     var p = new Promise( (resolve, reject) => {
         let args = [
-            v,
+            name,
+            data,
         ];
         db.transaction(
             tx => {
-                tx.executeSql(INSERT_PAGE_SQL, args, () => {
-                    resolve(true);
-                },
-                (tx, err) => {
-                    console.log("ERROR: (InsertPage - ExecuteSQL):", err);
-                    resolve(false);
-                })
+                tx.executeSql(INSERT_OR_REPLACE_PAGE_SQL, args, () => {}, (tx, err) => { reject(err) } )
             },
-            (err) => {
-                console.log("ERROR: (InsertPage - Transaction):", err);
-                resolve(false);
-            },
-            () => {
-                resolve(true);
-            }
+            (err) => { reject(err) },
+            () => { resolve() }
         );
-
     });
     return p;
 };
 
 
-export const InsertCss = (v) => {
+export const InsertOrReplaceCss = (name, data) => {
     var p = new Promise( (resolve, reject) => {
         let args = [
-            v,
+            name,
+            data,
         ];
         db.transaction(
             tx => {
-                tx.executeSql(INSERT_CSS_SQL, args, () => {
-                    resolve(true);
-                },
-                (tx, err) => {
-                    console.log("ERROR: (InsertCss - ExecuteSQL):", err);
-                    resolve(false);
-                })
+                tx.executeSql(INSERT_OR_REPLACE_CSS_SQL, args, () => {}, (tx, err) => { reject(err) } )
             },
-            (err) => {
-                console.log("ERROR: (InsertCss - Transaction):", err);
-                resolve(false);
-            },
-            () => {
-                resolve(true);
-            }
-        );
-
+            (err) => { reject(err) },
+            () => { resolve() }
+        )
     });
     return p;
 };
@@ -130,18 +138,17 @@ export const GetAllCss = () => {
             tx => {
                 tx.executeSql(SELECT_ALL_CSS_SQL, [], (tx, rs) => {
                     if (rs.rows.length != 0) {
-                        css = rs.rows._array[0].json_str;
+                        css = rs.rows._array.slice();
                     } else {
                         css = null;
                     }
                 },
                 (tx, err) => {
-                    console.log("ERROR (GetAllQuestions): ExecuteSQL:", err);
+                    reject(err);
                 })
             },
             (err) => {
-                console.log("ERROR (GetAllQuestions): Transaction:", err);
-                reject(null);
+                reject(err);
             },
             () => {
                 resolve(css);
@@ -151,6 +158,7 @@ export const GetAllCss = () => {
     return p;
 };
 
+
 export const GetAllPages = () => {
     var p = new Promise( (resolve, reject) => {
         var pages = {};
@@ -158,18 +166,17 @@ export const GetAllPages = () => {
             tx => {
                 tx.executeSql(SELECT_ALL_PAGES_SQL, [], (tx, rs) => {
                     if (rs.rows.length != 0) {
-                        pages = rs.rows._array[0].json_str;
+                        pages = rs.rows._array.slice();
                     } else {
                         pages = null
                     }
                 },
                 (tx, err) => {
-                    console.log("ERROR (GetAllQuestions): ExecuteSQL:", err);
+                    reject(err);
                 })
             },
             (err) => {
-                console.log("ERROR (GetAllQuestions): Transaction:", err);
-                reject(null);
+                reject(err);
             },
             () => {
                 resolve(pages);
@@ -177,4 +184,50 @@ export const GetAllPages = () => {
         );
     });
     return p;
+};
+
+
+export const LocalDBGetResources = () => {
+    var p = new Promise( (resolve, reject) => {
+        Promise.all([GetAllPages(), GetAllCss()])
+            .then( results => {
+                var pages = results[0];
+                var css = results[1];
+                var final_results = {}
+                var cssdata = null;
+                if (css != null) {
+                    cssdata = css[0];
+                } else {
+                    cssdata = { name: 'css', data: null };
+                }
+                final_results = {
+                    pages: pages,
+                    css: cssdata
+                };
+                resolve(final_results);
+            })
+            .catch(err => {
+                reject(err);
+            })
+    });
+    return p;
+};
+
+
+export const LocalDBSaveResources = (pages, css) => {
+    var p = new Promise( (resolve, reject) => {
+        // pages and css have the form of [ { name: name1, data: data1 }, { name: name2, data: data2 }]
+
+        let sqlpagescmds = pages.map(page => { return InsertOrReplacePage(page.name, page.data); });
+        let sqlcsscmds = css.map(c => { return InsertOrReplaceCss(c.name, c.data); });
+
+        Promise.all([sqlpagescmds, sqlcsscmds])
+            .then( results => {
+                resolve();
+            })
+            .catch( err => {
+                reject(err);
+            });
+    });
+    return p;       
 };

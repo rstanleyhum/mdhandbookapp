@@ -7,8 +7,11 @@ import Expo, { AppLoading } from 'expo';
 import store from './app/store';
 import MainApp from './app/mainapp';
 
-import { setupAllPageResources, saveAllPageResources, loadAllPageResources } from './app/actions/global';
-import { SetupLocalDB } from './app/services/localdb';
+import { DropLocalDB, SetupLocalDB } from './app/services/localdb';
+import { GetRunNumber, SaveRunNumber, ResetLastUpdateTime } from './app/services/appstorage';
+import { loadLocalDBResources } from './app/actions/localdb';
+import { getDataFromServer } from './app/actions/firebase';
+import { LogError } from './app/services/logger';
 
 
 export default class App extends React.Component {
@@ -21,29 +24,29 @@ export default class App extends React.Component {
   }
 
   setup() {
-    SetupLocalDB()
-    .then( result => {
-      return store.dispatch(loadAllPageResources())
-    })
-    .then(success => {
-      if (success) {
+    GetRunNumber()
+      .then( (run_num) => {
+        if (run_num == 0) {
+          return Promise.all([DropLocalDB(), ResetLastUpdateTime(), SaveRunNumber(1)])
+        }  
+        let new_run_num = run_num + 1;
+        return SaveRunNumber(new_run_num);
+      })
+      .then( () => {
+        return SetupLocalDB()
+      })
+      .then( () => {
+        return store.dispatch(getDataFromServer());
+      })
+      .then( () => {
+        return store.dispatch(loadLocalDBResources());
+      })
+      .then( () => {
         this.setState({isReady: true});
-        return Promise.resolve(true);
-      } else {
-        return Promise.all([store.dispatch(setupAllPageResources())]);
-      }
-    })
-    .then(results => {
-      
-      this.setState({isReady: true});
-      
-      if (typeof results != "boolean") {
-        store.dispatch(saveAllPageResources());
-      }
-    })
-    .catch(err => {
-      console.log("Error on startup: " + err);
-    });
+      })
+      .catch(err => {
+        LogError("Error on startup: " + err);
+      });
   }
 
   render() {
