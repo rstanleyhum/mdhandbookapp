@@ -257,3 +257,6 @@ freeline_project_description.json
 .history
 
 # End of https://www.gitignore.io/api/node,reactnative,visualstudiocode
+
+
+.vs

@@ -2,7 +2,7 @@
 
 import { StackNavigator } from 'react-navigation';
 
-import Main from './pagesapp/containers/main';
+import Main from './containers/main';
 
 const routeConfiguration = {
     Main: { screen: Main },
