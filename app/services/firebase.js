@@ -147,23 +147,4 @@ export const AddTimeParam = (url, lasttime) => {
 
 
 
-export const VerifyDownload = (pages, cssdata) => {
-    var pageslength = pages.map(item => { return item.data.length });
-    var total = pageslength.reduce( function(sum, value) {
-        return sum + value;
-    }, 0);
-
-    console.log(pages.map(item => { return { name: item.name, length: item.data.length }}));
-    console.log(pagesnames.length);
-
-    return { 
-        pagesstats: { totallength: total, numfiles: pages.length },
-        cssstats: { totallength: cssdata.length, numfiles: null }
-    }
-    
-    console.log("Now the css");
-    console.log(cssdata.length);
-
-}
-
 export default firebase;
