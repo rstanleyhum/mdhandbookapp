@@ -20,6 +20,7 @@ class MainView extends React.Component {
                 style={{flex: 1}}
                 source={this.props.source}
                 onMessage={e => {this.props.onMessage(e);}}
+                scalesPageToFit={true}
             />
         );
     }
