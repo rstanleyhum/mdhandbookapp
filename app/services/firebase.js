@@ -36,8 +36,10 @@ export const GetNewDataFromServer = (lasttime) => {
                 return Promise.all([responses[0].json(), responses[1].json()]);
             })
             .then(results => {
-                let pageUrls = results[0];
-                let cssUrls = results[1];
+                let pageUrls = results[0].names;
+                let pagesstats = { totallength: results[0].totallength, numfiles: results[0].numfiles }
+                let cssUrls = results[1].names;
+                let cssstats = { totallength: results[1].totallength, numfiles: results[1].numfiles }
                 let pageBaseNames = ParseBaseHTMLNames(pageUrls);
                 let cssBaseNames = ParseBaseCssNames(cssUrls);
 
@@ -59,14 +61,18 @@ export const GetNewDataFromServer = (lasttime) => {
 
                 var pageLoading = finalpageslist.map( (item) => { return LoadURL(item.name, item.path); } );
                 var cssLoading = finalcsslist.map( (item) => { return LoadURL(item.name, item.path); } );
-                return Promise.all([Promise.all(pageLoading), Promise.all(cssLoading)]);
+                return Promise.all([Promise.all(pageLoading), Promise.all(cssLoading)], Promise.resolve(pagesstats), Promise.resolve(cssstats));
             })
             .then(dataresults => {
                 var page_json = dataresults[0];
                 var css_json = dataresults[1];
+                var pagesstats = dataresults[2];
+                var cssstats = dataresults[3];
                 var final_results = {
                     pages: page_json,
-                    css: css_json
+                    css: css_json,
+                    pagestats: pagesstats,
+                    cssstats: cssstats
                 };
                 resolve(final_results);
             })
@@ -139,5 +145,25 @@ export const AddTimeParam = (url, lasttime) => {
     return url.concat('?', TIME_QUERY_PARAM, '=', lasttime.toString());
 }
 
+
+
+export const VerifyDownload = (pages, cssdata) => {
+    var pageslength = pages.map(item => { return item.data.length });
+    var total = pageslength.reduce( function(sum, value) {
+        return sum + value;
+    }, 0);
+
+    console.log(pages.map(item => { return { name: item.name, length: item.data.length }}));
+    console.log(pagesnames.length);
+
+    return { 
+        pagesstats: { totallength: total, numfiles: pages.length },
+        cssstats: { totallength: cssdata.length, numfiles: null }
+    }
+    
+    console.log("Now the css");
+    console.log(cssdata.length);
+
+}
 
 export default firebase;
