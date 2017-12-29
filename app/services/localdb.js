@@ -23,8 +23,12 @@ const SELECT_ALL_CSS_SQL = `SELECT name, data FROM csstable;`;
 
 const INSERT_OR_REPLACE_CSS_SQL = `INSERT OR REPLACE INTO csstable (name, data) VALUES (?, ?);`;
 
+const dbname = `pages.db3`;
+const version = 'version-ignored';
+const description = 'description-ignored';
+const size = 'size-ignored';
 
-const db = SQLite.openDatabase({name: 'pages.db3'});
+const db = SQLite.openDatabase(dbname, version, description, size);
 
 
 export const DropPagesTable = () => {
